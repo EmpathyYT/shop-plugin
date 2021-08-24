@@ -1,0 +1,10 @@
+name: Shop-plugin
+version: '1.0-SNAPSHOT'
+main: q.q.Q
+api-version: 1.17
+authors: [ EmpathyYT ]
+description: shop plugin for hx
+website: notarealwebsite.tk
+commands:
+  shop:
+  editshop:
