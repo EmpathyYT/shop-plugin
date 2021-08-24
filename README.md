@@ -5,4 +5,7 @@ A minecraft shop plugin for 1.17.1 paper.
 
 - NMS not required
 
+- please dont copy the code, download the jar from releases.
+
 - have fun :)
+
