@@ -231,6 +231,7 @@ public final class Q extends JavaPlugin implements Listener {
                 return true;
             }
             Player player = (Player) sender;
+            if (!player.isOp()) return true;
             if(args.length >= 1) {
                 if(args[0].equalsIgnoreCase("blocks") || args[0].equalsIgnoreCase("redstone")
                         || args[0].equalsIgnoreCase("weapons") || args[0].equalsIgnoreCase("tools") ||
@@ -393,7 +394,7 @@ public final class Q extends JavaPlugin implements Listener {
 
 
     public void CreateInv() {
-        final @NotNull TextComponent textComponenat = Component.text("The HomieCraft Market", NamedTextColor.AQUA);
+        final @NotNull TextComponent textComponenat = Component.text("The Local Market", NamedTextColor.AQUA);
         invMain = Bukkit.createInventory(null, 9, textComponenat);
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
