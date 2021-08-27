@@ -1,0 +1,9 @@
+name: shop
+version: 1
+main: plugin.q.Q
+api-version: 1.17
+authors: [ EmpathyYT ]
+description: a shop plugin made for hc
+commands:
+  shop:
+  editshop:
