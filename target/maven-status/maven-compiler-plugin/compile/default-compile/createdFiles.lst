@@ -1,4 +1,3 @@
-q\q\SQLStuff.class
-q\q\Q.class
-q\q\Tab.class
-q\q\SQLFuns.class
+plugin\q\Tab.class
+plugin\q\SQLFuns.class
+plugin\q\SQLStuff.class
