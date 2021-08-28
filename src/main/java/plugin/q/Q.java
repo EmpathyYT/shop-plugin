@@ -214,6 +214,7 @@ public final class Q extends JavaPlugin implements Listener {
                         args[0].equalsIgnoreCase("customs") || args[0].equalsIgnoreCase("currency")) {
 
                     if (args.length >= 3 && args[1].equalsIgnoreCase("customrem")) {
+                        if (player.getInventory().getItemInMainHand() == null) return true;
                         ItemStack item = player.getInventory().getItemInMainHand();
                         Objects.requireNonNull(Objects.requireNonNull(item.getItemMeta()).getLore()).clear();
                         String encodedObject;
@@ -237,6 +238,7 @@ public final class Q extends JavaPlugin implements Listener {
                             anotherthing.setLore(anotherlore);
                             item.setItemMeta(anotherthing);
                             invCustoms.removeItem(item);
+                            player.getInventory().addItem(item);
                             return true;
 
 
@@ -250,9 +252,14 @@ public final class Q extends JavaPlugin implements Listener {
 
 
                     else if (args.length >= 3 && args[1].equalsIgnoreCase("customadd")) {
-
+                        if (player.getInventory().getItemInMainHand() == null) return true;
                         ItemStack item = player.getInventory().getItemInMainHand();
-                        Objects.requireNonNull(item.getItemMeta().getLore()).clear();
+                        ItemMeta anotherthing = item.getItemMeta();
+                        List<String> anotherlore = new ArrayList<String>();
+
+                        anotherlore.add(ChatColor.AQUA + "Price: " + Integer.parseInt(args[2]) + " Diamonds");
+                        anotherthing.setLore(anotherlore);
+                        item.setItemMeta(anotherthing);
                         String encodedObject;
                         ByteArrayOutputStream io = new ByteArrayOutputStream();
                         try {
@@ -264,12 +271,7 @@ public final class Q extends JavaPlugin implements Listener {
 
                             encodedObject = Base64.getEncoder().encodeToString(serializedObject);
 
-                            ItemMeta anotherthing = item.getItemMeta();
-                            List<String> anotherlore = new ArrayList<String>();
 
-                            anotherlore.add(ChatColor.AQUA + "Price: " + args[2] + " Diamonds");
-                            anotherthing.setLore(anotherlore);
-                            item.setItemMeta(anotherthing);
                             PreparedStatement preparedStatement = SQL.getConnection().prepareStatement("SELECT * FROM " +
                                     "customs WHERE Price=? AND So=?");
                             preparedStatement.setInt(1, Integer.parseInt(args[2]));
@@ -283,9 +285,10 @@ public final class Q extends JavaPlugin implements Listener {
                             ps.setString(2, encodedObject);
                             ps.executeUpdate();
                             player.sendMessage(ChatColor.GREEN + "Custom item saved " + "Serial number: " + encodedObject);
-                            
+
                             Bukkit.getServer().broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "A new Custom item has been added to the shop");
                             invCustoms.addItem(item);
+                            item.getItemMeta().getLore().clear();
                             return true;
 
 
@@ -358,7 +361,7 @@ public final class Q extends JavaPlugin implements Listener {
 
     public void CreateInv() {
         
-        invMain = Bukkit.createInventory(null, 9, "The HomieCraft Market");
+        invMain = Bukkit.createInventory(null, 9, ChatColor.AQUA + "The Local Market");
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
 
@@ -373,49 +376,49 @@ public final class Q extends JavaPlugin implements Listener {
         invMain.setItem(0, item);
         //weaponry and armory
         item.setType(Material.DIAMOND_SWORD);
-        meta.setDisplayName("Weapons and Armor" + ChatColor.AQUA);
+        meta.setDisplayName(ChatColor.AQUA + "Weapons and Armor");
         item.setItemMeta(meta);
         invMain.setItem(1, item);
 
         //tools
         item.setType(Material.DIAMOND_PICKAXE);
-        meta.setDisplayName("Tools" + ChatColor.BLUE);
+        meta.setDisplayName(ChatColor.BLUE + "Tools");
         item.setItemMeta(meta);
         invMain.setItem(2, item);
 
         //redstone
         item.setType(Material.REDSTONE);
-        meta.setDisplayName("Redstone Materials");
+        meta.setDisplayName(ChatColor.RED + "Redstone Materials");
         item.setItemMeta(meta);
         invMain.setItem(3, item);
 
         //misc
         
         item.setType(Material.ENCHANTED_BOOK);
-        meta.setDisplayName("Customs and Misc" + ChatColor.LIGHT_PURPLE);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "Customs and Misc");
         item.setItemMeta(meta);
         invMain.setItem(4, item);
 
         //Exchange
         item.setType(Material.GOLD_INGOT);
-        meta.setDisplayName("Currency Exchange" + ChatColor.GOLD);
+        meta.setDisplayName(ChatColor.GOLD + "Currency Exchange");
         item.setItemMeta(meta);
         invMain.setItem(5, item);
-        invBlocks = Bukkit.createInventory(null, 54, "Blocks Shop" + ChatColor.GRAY);
-        invWeapons = Bukkit.createInventory(null, 54, "Weapons Shop" + ChatColor.AQUA);
-        invTools = Bukkit.createInventory(null, 54, "Tools Shop" + ChatColor.BLUE);
-        invRedstone = Bukkit.createInventory(null, 54, "Redstone Materials Shop" + ChatColor.RED);
-        invCustoms = Bukkit.createInventory(null, 54, "Customs and Misc Shop" + ChatColor.LIGHT_PURPLE);
-        invCurrency = Bukkit.createInventory(null, 54, "Currency Exchange" + ChatColor.GOLD);
+        invBlocks = Bukkit.createInventory(null, 54, ChatColor.GRAY + "Blocks Shop");
+        invWeapons = Bukkit.createInventory(null, 54, ChatColor.AQUA + "Weapons Shop");
+        invTools = Bukkit.createInventory(null, 54, ChatColor.BLUE + "Tools Shop");
+        invRedstone = Bukkit.createInventory(null, 54, ChatColor.RED + "Redstone Materials Shop" );
+        invCustoms = Bukkit.createInventory(null, 54, ChatColor.LIGHT_PURPLE + "Customs and Misc Shop" );
+        invCurrency = Bukkit.createInventory(null, 54, ChatColor.GOLD + "Currency Exchange");
 
         //back button
         ItemStack buttonBack = new ItemStack(Material.RED_STAINED_GLASS);
         ItemMeta buttonMeta = buttonBack.getItemMeta();
         
-        buttonMeta.setDisplayName("Back" + ChatColor.RED);
+        buttonMeta.setDisplayName(ChatColor.RED + "Back");
         List<String> buttonLore = new ArrayList<String>();
         
-        buttonLore.add("Press to go back to the main page" + ChatColor.RED + "" + ChatColor.BOLD + "" + ChatColor.ITALIC);
+        buttonLore.add(ChatColor.RED + "" + ChatColor.BOLD + "" + ChatColor.ITALIC + "Press to go back to the main page");
         buttonMeta.setLore(buttonLore);
         buttonBack.setItemMeta(buttonMeta);
         invBlocks.setItem(53, buttonBack);
@@ -441,7 +444,7 @@ public final class Q extends JavaPlugin implements Listener {
             if (event.getCurrentItem().getItemMeta().getDisplayName() == null) return;
             event.setCancelled(true);
 
-            String textComponenatblockszg = "The HomieCraft Market" + ChatColor.AQUA;
+            String textComponenatblockszg = ChatColor.AQUA + "The Local Market";
             if (event.getSlot() == 0 && event.getCurrentItem().getType() == Material.STONE && event.getView().getTitle().equals(textComponenatblockszg)) {
                 player.openInventory(invBlocks);
             } else if (event.getSlot() == 1 && event.getCurrentItem().getType() == Material.DIAMOND_SWORD && event.getView().getTitle().equals(textComponenatblockszg)) {
@@ -490,10 +493,10 @@ public final class Q extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                         return;
                     } catch (Exception ex) {
-                        player.sendMessage("You don't have enough diamonds.");
+                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -507,10 +510,7 @@ public final class Q extends JavaPlugin implements Listener {
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
             try {
-                PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM customs WHERE " +
-                        "So=?");
                 ItemStack item = event.getCurrentItem();
-                Objects.requireNonNull(item.getItemMeta().getLore()).clear();
                 String encodedObject;
                 ByteArrayOutputStream io = new ByteArrayOutputStream();
                 BukkitObjectOutputStream os = new BukkitObjectOutputStream(io);
@@ -518,6 +518,9 @@ public final class Q extends JavaPlugin implements Listener {
                 os.flush();
                 byte[] serializedObject = io.toByteArray();
                 encodedObject = Base64.getEncoder().encodeToString(serializedObject);
+
+                PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM customs WHERE " +
+                        "So=?");
                 ps2.setString(1, encodedObject);
                 ResultSet rs = ps2.executeQuery();
                 ItemStack price = new ItemStack(Material.DIAMOND, rs.getInt("Price"));
@@ -546,10 +549,10 @@ public final class Q extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.GREEN + "You bought " + newthing.getType().toString().toLowerCase().replaceAll("_", " "));
                         return;
                     } catch (Exception ex) {
-                        player.sendMessage("You don't have enough diamonds.");
+                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException | IOException throwables) {
                 throwables.printStackTrace();
@@ -589,10 +592,10 @@ public final class Q extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                         return;
                     } catch (Exception ex) {
-                        player.sendMessage("You don't have enough diamonds.");
+                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -637,7 +640,7 @@ public final class Q extends JavaPlugin implements Listener {
                         player.sendMessage("You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -677,10 +680,10 @@ public final class Q extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                         return;
                     } catch (Exception ex) {
-                        player.sendMessage("You don't have enough diamonds.");
+                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -719,10 +722,10 @@ public final class Q extends JavaPlugin implements Listener {
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
                         player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                     } catch (Exception ex) {
-                        player.sendMessage("You don't have enough diamonds.");
+                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
                         ex.printStackTrace();
                     }
-                } else player.sendMessage("You dont have enough diamonds!"+ ChatColor.RED);
+                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

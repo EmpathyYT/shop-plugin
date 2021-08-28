@@ -40,7 +40,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\lolki\Desktop\productions\shop\outpuyt\shop.jar</outputFile>
+                            <outputFile>C:\Users\lolki\Desktop\productions\shop\outpuyt\shoppub.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
