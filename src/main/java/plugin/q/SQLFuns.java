@@ -7,6 +7,8 @@ package plugin.q;
     import org.bukkit.entity.Player;
     import org.bukkit.inventory.ItemStack;
     import org.bukkit.inventory.meta.ItemMeta;
+    import org.bukkit.scheduler.BukkitTask;
+
     import java.sql.DatabaseMetaData;
     import java.sql.PreparedStatement;
     import java.sql.ResultSet;
@@ -26,11 +28,10 @@ public class SQLFuns {
                     "(Material TEXT, Price INT, Quant INT)");
             ps.executeUpdate();
             ps = plugin.SQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS currency " +
-                    "(Material TEXT, Price INT, Quant INT )");
+                    "(Material TEXT, Price INT, Quant INT, Material2 TEXT)");
             ps.executeUpdate();
             ps = plugin.SQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS customs " +
                     "(Price INT, So TEXT)");
-            ps.executeUpdate();
             ps = plugin.SQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS redstone " +
                     "(Material TEXT, Price INT, Quant INT )");
             ps.executeUpdate();
@@ -45,6 +46,21 @@ public class SQLFuns {
         }
     }
 
+    public void thinga() {
+        PreparedStatement ps;
+        try {
+            ps = plugin.SQL.getConnection().prepareStatement("SELECT Material2 FROM currency");
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+        } catch (SQLException e) {
+            try {
+                ps = plugin.SQL.getConnection().prepareStatement("ALTER TABLE currency ADD COLUMN Material2 TEXT");
+                ps.executeUpdate();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
 
 
@@ -56,10 +72,13 @@ public class SQLFuns {
             if (!checkCategory(Category)) return;
             if (!checkMaterial(Materialz)) return;
             if (!checkammount(Category)) return;
-
+            if (Quant > 64) {
+                player.sendMessage(ChatColor.RED + "Max stack size is 64!");
+                return;
+            }
             PreparedStatement ps2 = plugin.SQL.getConnection().prepareStatement("SELECT * FROM " + Category +
                     " WHERE Material=? AND Quant=?");
-            ps2.setString(1, Materialz);
+            ps2.setString(1, Materialz.toUpperCase());
             ps2.setInt(2, Quant);
 
             ResultSet results = ps2.executeQuery();
@@ -71,29 +90,46 @@ public class SQLFuns {
             ps.setInt(2, Price);
             ps.setInt(3, Quant);
             ps.executeUpdate();
+
             PreparedStatement ps3 = plugin.SQL.getConnection().prepareStatement("SELECT * FROM " + Category +
                     " WHERE Material=? AND Quant=?");
             ps3.setString(1, Materialz.toUpperCase());
             ps3.setInt(2, Quant);
 
             ResultSet results1 = ps3.executeQuery();
+
             Material m = Material.matchMaterial(Materialz.replaceAll("\\s+", "_").toUpperCase().trim());
             assert m != null;
             ItemStack item = new ItemStack(m, Quant);
             ItemMeta anotherthing = item.getItemMeta();
             List<String> anotherlore = new ArrayList<String>();
 
-            anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+            anotherlore.add(ChatColor.AQUA + "Price: " + results1.getInt("Price") + " Diamonds");
             anotherthing.setLore(anotherlore);
             item.setItemMeta(anotherthing);
-            if (Category.equalsIgnoreCase("blocks")) plugin.invBlocks.addItem(item);
-            if (Category.equalsIgnoreCase("currency")) plugin.invCurrency.addItem(item);
-            if (Category.equalsIgnoreCase("redstone")) plugin.invRedstone.addItem(item);
-            if (Category.equalsIgnoreCase("tools")) plugin.invTools.addItem(item);
-            if (Category.equalsIgnoreCase("weapons")) plugin.invWeapons.addItem(item);
-            player.sendMessage(ChatColor.GREEN + "Material added!");
+            if (Category.equalsIgnoreCase("blocks")) {
+                plugin.invBlocks.addItem(item);
+                player.sendMessage(ChatColor.GREEN + "Material added!");
+                Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "An item has been added to the shop");
+            }
+            if (Category.equalsIgnoreCase("redstone")) {
+                plugin.invRedstone.addItem(item);
+                player.sendMessage(ChatColor.GREEN + "Material added!");
+                Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "An item has been added to the shop");
+            }
+            if (Category.equalsIgnoreCase("tools")) {
+                plugin.invTools.addItem(item);
+                player.sendMessage(ChatColor.GREEN + "Material added!");
+                Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "An item has been added to the shop");
+            }
+            if (Category.equalsIgnoreCase("weapons")) {
+                plugin.invWeapons.addItem(item);
+                player.sendMessage(ChatColor.GREEN + "Material added!");
+                Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "An item has been added to the shop");
+            }
 
-            Bukkit.getServer().broadcastMessage(ChatColor.GREEN + Materialz + "has been added to the shop");
+
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -127,26 +163,31 @@ public class SQLFuns {
                 if (Category.equalsIgnoreCase("blocks")) {
                     plugin.invBlocks.remove(item);
                     player.sendMessage(ChatColor.GREEN + "Material removed!");
+                    Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
                     return;
                 }
                 if (Category.equalsIgnoreCase("currency")) {
                     plugin.invCurrency.remove(item);
                     player.sendMessage(ChatColor.GREEN + "Material removed!");
+                    Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
                     return;
                 }
                 if (Category.equalsIgnoreCase("redstone")) {
                     plugin.invRedstone.remove(item);
                     player.sendMessage(ChatColor.GREEN + "Material removed!");
+                    Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
                     return;
                 }
                 if (Category.equalsIgnoreCase("tools")) {
                     plugin.invTools.remove(item);
                     player.sendMessage(ChatColor.GREEN + "Material removed!");
+                    Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
                     return;
                 }
                 if (Category.equalsIgnoreCase("weapons")) {
                     plugin.invWeapons.remove(item);
                     player.sendMessage(ChatColor.GREEN + "Material removed!");
+                    Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
                 }
 
             }

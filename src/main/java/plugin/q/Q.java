@@ -1,6 +1,11 @@
 package plugin.q;
 
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
+import net.minecraft.world.item.Items;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +20,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import plugin.q.SQLStuff;
+
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,6 +65,7 @@ public final class Q extends JavaPlugin implements Listener {
         if (SQL.isConnected()) {
             Bukkit.getLogger().info("Database Connected!");
             Funcs.initializedbs();
+            Funcs.thinga();
         }
         try {
             PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM weapons");
@@ -136,17 +144,16 @@ public final class Q extends JavaPlugin implements Listener {
             while(results.next()) {
 
                 material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
-                assert material != null;
                 ItemStack thing = new ItemStack(material, results.getInt("Quant"));
                 ItemMeta anotherthing = thing.getItemMeta();
                 List<String> anotherlore = new ArrayList<String>();
 
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " " + results.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
                 anotherthing.setLore(anotherlore);
                 thing.setItemMeta(anotherthing);
-                invCurrency.addItem(thing);
+                int i = invCurrency.firstEmpty();
+                invCurrency.setItem(i, thing);
                 anotherlore.clear();
-
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM blocks");
             results = ps2.executeQuery();
@@ -238,7 +245,6 @@ public final class Q extends JavaPlugin implements Listener {
                             anotherthing.setLore(anotherlore);
                             item.setItemMeta(anotherthing);
                             invCustoms.removeItem(item);
-                            player.getInventory().addItem(item);
                             return true;
 
 
@@ -303,12 +309,59 @@ public final class Q extends JavaPlugin implements Listener {
                     else if(args[1].equalsIgnoreCase("add")) {
                         if(args.length >=4) {
                             if (args[0].equalsIgnoreCase("customs")) return true;
+                            if (args[0].equalsIgnoreCase("currency") && args.length >= 5) {
+                                try {
+                                if (!Funcs.checkMaterial(args[2])) return true;
+                                if (!Funcs.checkMaterial(args[5])) return true;
+                                if (!Funcs.checkammount(args[0])) return true;
+                                if (Integer.parseInt(args[4]) > 64) {
+                                    player.sendMessage(ChatColor.RED + "Max stack size is 64!");
+                                    return false;
+                                }
+                                PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM currency" +
+                                        " WHERE Material=? AND Quant=? AND Material2=?");
+                                ps2.setString(1, args[2].toUpperCase());
+                                ps2.setInt(2, Integer.parseInt(args[4]));
+                                ps2.setString(3, args[5].toUpperCase());
+                                ResultSet results = ps2.executeQuery();
+                                if (results.next()) return true;
+                                PreparedStatement ps = SQL.getConnection().prepareStatement("INSERT INTO currency (Material,Price,Quant,Material2) " +
+                                        "VALUES (?,?,?,?)");
+                                ps.setString(1, args[2].toUpperCase());
+                                ps.setInt(2, Integer.parseInt(args[3]));
+                                ps.setInt(3, Integer.parseInt(args[4]));
+                                ps.setString(4, args[5].toUpperCase());
+                                ps.executeUpdate();
+                                Material m = Material.matchMaterial(args[2].replaceAll("\\s+", "_").toUpperCase().trim());
+                                assert m != null;
+                                ItemStack item = new ItemStack(m, Integer.parseInt(args[4]));
+                                ItemMeta anotherthing = item.getItemMeta();
+                                List<String> anotherlore = new ArrayList<String>();
+                                anotherlore.add(ChatColor.AQUA + "Price: " + Integer.parseInt(args[3]) + " " + args[5].toLowerCase().replace("_", " ") + "(s)");
+                                anotherthing.setLore(anotherlore);
+                                item.setItemMeta(anotherthing);
+                                int i = invCurrency.firstEmpty();
+                                invCurrency.setItem(i, item);
+                                player.sendMessage(ChatColor.GREEN + "Material added!");
+                                Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "An item has been added to the shop");
+                                return true;
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                                message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                                message.setBold(true);
+                                message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                                message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                                player.spigot().sendMessage(message);
+                                return true;
+                            }
                             int arg3 = Integer.parseInt(args[3]);
                             int arg4 = Integer.parseInt(args[4]);
                             try {
                                 Funcs.insertthing(player, args[0], args[2], arg3, arg4);
                                 return true;
-
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -318,6 +371,50 @@ public final class Q extends JavaPlugin implements Listener {
                     else if(args[1].equalsIgnoreCase("remove")) {
                         if(args.length >=4) {
                             if (args[0].equalsIgnoreCase("customs")) return true;
+                            if (args[0].equalsIgnoreCase("currency") && args.length >= 5) {
+                                try {
+                                    PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM currency"  +
+                                            " WHERE Material=? AND Price=? AND Quant=? AND Material2=?");
+                                    ps2.setString(1, args[2].toUpperCase());
+                                    ps2.setInt(2, Integer.parseInt(args[3]));
+                                    ps2.setInt(3, Integer.parseInt(args[4]));
+                                    ps2.setString(4, args[5].toUpperCase());
+                                    ResultSet results = ps2.executeQuery();
+                                    if (results.next()) {
+                                        PreparedStatement ps = SQL.getConnection().prepareStatement("DELETE FROM currency" +
+                                                " WHERE Material=? AND Price=? AND Quant=? AND Material2=?");
+                                        ps.setString(1, args[2].toUpperCase());
+                                        ps.setInt(2, Integer.parseInt(args[3]));
+                                        ps.setInt(3, Integer.parseInt(args[4]));
+                                        ps.setString(4, args[5].toUpperCase());
+                                        ps.executeUpdate();
+                                        Material m = Material.matchMaterial(args[2].toUpperCase().replaceAll("\\s+", "_").toUpperCase().trim());
+                                        assert m != null;
+                                        ItemStack item = new ItemStack(m, Integer.parseInt(args[4]));
+                                        ItemMeta anotherthing = item.getItemMeta();
+                                        List<String> anotherlore = new ArrayList<String>();
+
+                                        anotherlore.add(ChatColor.AQUA + "Price: " + Integer.parseInt(args[3]) + " " + args[5].toLowerCase().replace("_", " ") + "(s)");
+                                        anotherthing.setLore(anotherlore);
+                                        item.setItemMeta(anotherthing);
+                                        invCurrency.remove(item);
+                                        player.sendMessage(ChatColor.GREEN + "Material removed!");
+                                        Bukkit.getServer().broadcastMessage(ChatColor.RED + "An item has been removed from the shop");
+                                        return true;
+
+                                    }
+                                }  catch (SQLException throwables) {
+                                    throwables.printStackTrace();
+                                }
+                            } else {
+                                net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                                message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                                message.setBold(true);
+                                message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                                message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                                player.spigot().sendMessage(message);
+                                return true;
+                            }
                             int arg3 = Integer.parseInt(args[3]);
                             int arg4 = Integer.parseInt(args[4]);
                             try {
@@ -328,25 +425,41 @@ public final class Q extends JavaPlugin implements Listener {
                             }
                         }
                         else {
-                            player.sendMessage(ChatColor.RED + "Usage: /editshop [blocks/redstone/weapons/tools/customs/currency] [add/remove]" +
-                                    " [Material] [Price] [Quantity]");
+                            net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                            message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                            message.setBold(true);
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                            player.spigot().sendMessage(message);
                             return true;
                         }
                     }
                     else {
-                        player.sendMessage(ChatColor.RED + "Usage: /editshop [blocks/redstone/weapons/tools/customs/currency] [add/remove]" +
-                                " [Material] [Price] [Quantity]");
-                        return true;
+                        net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                            message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                            message.setBold(true);
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                            player.spigot().sendMessage(message);
+                            return true;
                     }
 
                 } else {
-                    player.sendMessage(ChatColor.RED + "Usage: /editshop [blocks/redstone/weapons/tools/customs/currency] [add/remove]" +
-                            " [Material] [Price] [Quantity]");
+                    net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                    message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                    message.setBold(true);
+                    message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                    message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                    player.spigot().sendMessage(message);
                     return true;
                 }
             } else {
-                player.sendMessage(ChatColor.RED + "Usage: /editshop [blocks/redstone/weapons/tools/customs/currency] [add/remove]" +
-                        " [Material] [Price] [Quantity]");
+                net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                message.setBold(true);
+                message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                player.spigot().sendMessage(message);
                 return true;
             }
 
@@ -361,7 +474,7 @@ public final class Q extends JavaPlugin implements Listener {
 
     public void CreateInv() {
         
-        invMain = Bukkit.createInventory(null, 9, ChatColor.AQUA + "The Local Market");
+        invMain = Bukkit.createInventory(null, 9, ChatColor.AQUA + "The Homiecraft Market");
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
 
@@ -444,7 +557,7 @@ public final class Q extends JavaPlugin implements Listener {
             if (event.getCurrentItem().getItemMeta().getDisplayName() == null) return;
             event.setCancelled(true);
 
-            String textComponenatblockszg = ChatColor.AQUA + "The Local Market";
+            String textComponenatblockszg = ChatColor.AQUA + "The Homiecraft Market";
             if (event.getSlot() == 0 && event.getCurrentItem().getType() == Material.STONE && event.getView().getTitle().equals(textComponenatblockszg)) {
                 player.openInventory(invBlocks);
             } else if (event.getSlot() == 1 && event.getCurrentItem().getType() == Material.DIAMOND_SWORD && event.getView().getTitle().equals(textComponenatblockszg)) {
@@ -506,7 +619,7 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invCustoms)) {
             event.setCancelled(true);
-            if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
+            if (!event.getCurrentItem().getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
             try {
@@ -534,6 +647,7 @@ public final class Q extends JavaPlugin implements Listener {
                             ByteArrayInputStream in = new ByteArrayInputStream(so);
                             BukkitObjectInputStream is = new BukkitObjectInputStream(in);
                             ItemStack newthing = (ItemStack) is.readObject();
+                            newthing.getItemMeta().getLore().clear();
                             world.dropItemNaturally(loc, newthing);
                             player.sendMessage(ChatColor.GREEN + "Your Item has been dropped under you since you have a full inventory");
                             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
@@ -543,6 +657,7 @@ public final class Q extends JavaPlugin implements Listener {
                         ByteArrayInputStream in = new ByteArrayInputStream(so);
                         BukkitObjectInputStream is = new BukkitObjectInputStream(in);
                         ItemStack newthing = (ItemStack) is.readObject();
+                        newthing.getItemMeta().getLore().clear();
                         player.getInventory().addItem(newthing);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
 
@@ -700,9 +815,15 @@ public final class Q extends JavaPlugin implements Listener {
                 ps2a.setString(1, Objects.requireNonNull(event.getCurrentItem()).getType().name().toUpperCase());
                 ps2a.setInt(2, event.getCurrentItem().getAmount());
                 ResultSet rsa = ps2a.executeQuery();
-                ItemStack price = new ItemStack(Material.DIAMOND, rsa.getInt("Price"));
-                if (rsa.next() && player.getInventory().containsAtLeast(price, rsa.getInt("Price"))) {
-                    try {
+                while (rsa.next()) {
+                    ItemStack re = new ItemStack(Material.matchMaterial(rsa.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Quant"));
+                    ItemMeta anotherthing = re.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
+                    anotherlore.add(ChatColor.AQUA + "Price: " + rsa.getInt("Price") + " " + rsa.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
+                    anotherthing.setLore(anotherlore);
+                    re.setItemMeta(anotherthing);
+                    if (event.getCurrentItem().equals(re)) {
+                        ItemStack price = new ItemStack(Material.matchMaterial(rsa.getString("Material2").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Price"));
                         player.getInventory().removeItem(price);
                         if (player.getInventory().firstEmpty() == -1) {
                             Location loc = player.getLocation();
@@ -721,14 +842,13 @@ public final class Q extends JavaPlugin implements Listener {
                         player.getInventory().addItem(newitem);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
                         player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
-                    } catch (Exception ex) {
-                        player.sendMessage(ChatColor.RED + "You don't have enough diamonds.");
-                        ex.printStackTrace();
                     }
-                } else player.sendMessage(ChatColor.RED + "You dont have enough diamonds!");
+                }
+
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
+                player.sendMessage(ChatColor.RED + "An error occured, you probably dont have enough diamonds.");
             }
         }
 
