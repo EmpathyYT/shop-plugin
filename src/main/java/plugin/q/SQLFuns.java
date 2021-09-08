@@ -32,6 +32,7 @@ public class SQLFuns {
             ps.executeUpdate();
             ps = plugin.SQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS customs " +
                     "(Price INT, So TEXT)");
+            ps.executeUpdate();
             ps = plugin.SQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS redstone " +
                     "(Material TEXT, Price INT, Quant INT )");
             ps.executeUpdate();

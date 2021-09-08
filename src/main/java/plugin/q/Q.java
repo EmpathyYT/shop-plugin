@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import plugin.q.SQLStuff;
@@ -70,25 +71,26 @@ public final class Q extends JavaPlugin implements Listener {
         try {
             PreparedStatement ps2 = SQL.getConnection().prepareStatement("SELECT * FROM weapons");
             ResultSet results = ps2.executeQuery();
+            if (results.next()) {
+                while (results.next()) {
 
-            while (results.next()) {
+                    material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                    assert material != null;
+                    ItemStack thing = new ItemStack(material, results.getInt("Quant"));
+                    ItemMeta anotherthing = thing.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
 
-                material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
-                assert material != null;
-                ItemStack thing = new ItemStack(material, results.getInt("Quant"));
-                ItemMeta anotherthing = thing.getItemMeta();
-                List<String> anotherlore = new ArrayList<String>();
+                    anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+                    anotherthing.setLore(anotherlore);
+                    thing.setItemMeta(anotherthing);
+                    invWeapons.addItem(thing);
+                    anotherlore.clear();
 
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
-                anotherthing.setLore(anotherlore);
-                thing.setItemMeta(anotherthing);
-                invWeapons.addItem(thing);
-                anotherlore.clear();
-
+                }
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM tools");
             results = ps2.executeQuery();
-
+            if (results.next()) {
             while (results.next()) {
 
                 material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
@@ -102,76 +104,79 @@ public final class Q extends JavaPlugin implements Listener {
                 thing.setItemMeta(anotherthing);
                 invTools.addItem(thing);
                 anotherlore.clear();
-
+                }
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM redstone");
             results = ps2.executeQuery();
+            if (results.next()) {
+                while (results.next()) {
 
-            while (results.next()) {
+                    material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                    assert material != null;
+                    ItemStack thing = new ItemStack(material, results.getInt("Quant"));
+                    ItemMeta anotherthing = thing.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
 
-                material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
-                assert material != null;
-                ItemStack thing = new ItemStack(material, results.getInt("Quant"));
-                ItemMeta anotherthing = thing.getItemMeta();
-                List<String> anotherlore = new ArrayList<String>();
-
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
-                anotherthing.setLore(anotherlore);
-                thing.setItemMeta(anotherthing);
-                invRedstone.addItem(thing);
-                anotherlore.clear();
+                    anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+                    anotherthing.setLore(anotherlore);
+                    thing.setItemMeta(anotherthing);
+                    invRedstone.addItem(thing);
+                    anotherlore.clear();
+                }
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM customs");
             results = ps2.executeQuery();
+            if (results.next()) {
+                while (results.next()) {
+                    byte[] so = Base64.getDecoder().decode(results.getString("So"));
+                    ByteArrayInputStream in = new ByteArrayInputStream(so);
+                    BukkitObjectInputStream is = new BukkitObjectInputStream(in);
+                    ItemStack newthing = (ItemStack) is.readObject();
+                    ItemMeta anotherthing = newthing.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
 
-            while(results.next()) {
-                byte[] so = Base64.getDecoder().decode(results.getString("So"));
-                ByteArrayInputStream in = new ByteArrayInputStream(so);
-                BukkitObjectInputStream is = new BukkitObjectInputStream(in);
-                ItemStack newthing = (ItemStack) is.readObject();
-                ItemMeta anotherthing = newthing.getItemMeta();
-                List<String> anotherlore = new ArrayList<String>();
-
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
-                anotherthing.setLore(anotherlore);
-                newthing.setItemMeta(anotherthing);
-                invCustoms.addItem(newthing);
-                anotherlore.clear();
+                    anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+                    anotherthing.setLore(anotherlore);
+                    newthing.setItemMeta(anotherthing);
+                    invCustoms.addItem(newthing);
+                    anotherlore.clear();
+                }
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM currency");
             results = ps2.executeQuery();
+            if (results.next()) {
+                while (results.next()) {
 
-            while(results.next()) {
+                    material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                    ItemStack thing = new ItemStack(material, results.getInt("Quant"));
+                    ItemMeta anotherthing = thing.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
 
-                material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
-                ItemStack thing = new ItemStack(material, results.getInt("Quant"));
-                ItemMeta anotherthing = thing.getItemMeta();
-                List<String> anotherlore = new ArrayList<String>();
-
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " " + results.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
-                anotherthing.setLore(anotherlore);
-                thing.setItemMeta(anotherthing);
-                int i = invCurrency.firstEmpty();
-                invCurrency.setItem(i, thing);
-                anotherlore.clear();
+                    anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " " + results.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
+                    anotherthing.setLore(anotherlore);
+                    thing.setItemMeta(anotherthing);
+                    int i = invCurrency.firstEmpty();
+                    invCurrency.setItem(i, thing);
+                    anotherlore.clear();
+                }
             }
             ps2 = SQL.getConnection().prepareStatement("SELECT * FROM blocks");
             results = ps2.executeQuery();
+            if (results.next()) {
+                while(results.next()) {
 
-            while(results.next()) {
+                    material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                    assert material != null;
+                    ItemStack thing = new ItemStack(material, results.getInt("Quant"));
+                    ItemMeta anotherthing = thing.getItemMeta();
+                    List<String> anotherlore = new ArrayList<String>();
 
-                material = Material.matchMaterial(results.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
-                assert material != null;
-                ItemStack thing = new ItemStack(material, results.getInt("Quant"));
-                ItemMeta anotherthing = thing.getItemMeta();
-                List<String> anotherlore = new ArrayList<String>();
-
-                anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
-                anotherthing.setLore(anotherlore);
-                thing.setItemMeta(anotherthing);
-                invBlocks.addItem(thing);
-                anotherlore.clear();
-
+                    anotherlore.add(ChatColor.AQUA + "Price: " + results.getInt("Price") + " Diamonds");
+                    anotherthing.setLore(anotherlore);
+                    thing.setItemMeta(anotherthing);
+                    invBlocks.addItem(thing);
+                    anotherlore.clear();
+                }
             }
         } catch (SQLException | IOException | ClassNotFoundException throwables) {
             throwables.printStackTrace();
@@ -214,7 +219,7 @@ public final class Q extends JavaPlugin implements Listener {
                 return true;
             }
             Player player = (Player) sender;
-            if (!player.isOp()) return true;
+            if (!player.isOp()) player.sendMessage(ChatColor.RED + "You are not OP!");
             if(args.length >= 1) {
                 if(args[0].equalsIgnoreCase("blocks") || args[0].equalsIgnoreCase("redstone")
                         || args[0].equalsIgnoreCase("weapons") || args[0].equalsIgnoreCase("tools") ||
@@ -348,6 +353,15 @@ public final class Q extends JavaPlugin implements Listener {
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
+                            } else if (!args[0].equalsIgnoreCase("currency")) {
+                                int arg3 = Integer.parseInt(args[3]);
+                                int arg4 = Integer.parseInt(args[4]);
+                                try {
+                                    Funcs.insertthing(player, args[0], args[2], arg3, arg4);
+                                    return true;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             } else {
                                 net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
                                 message.setColor(net.md_5.bungee.api.ChatColor.RED);
@@ -356,15 +370,16 @@ public final class Q extends JavaPlugin implements Listener {
                                 message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
                                 player.spigot().sendMessage(message);
                                 return true;
-                            }
-                            int arg3 = Integer.parseInt(args[3]);
-                            int arg4 = Integer.parseInt(args[4]);
-                            try {
-                                Funcs.insertthing(player, args[0], args[2], arg3, arg4);
-                                return true;
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                                }
+                            } else {
+                            net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
+                            message.setColor(net.md_5.bungee.api.ChatColor.RED);
+                            message.setBold(true);
+                            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://empathyyt.github.io/docs/Commands#shop-info"));
+                            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click Me!")));
+                            player.spigot().sendMessage(message);
+                            return true;
+
                         }
 
                     }
@@ -406,6 +421,15 @@ public final class Q extends JavaPlugin implements Listener {
                                 }  catch (SQLException throwables) {
                                     throwables.printStackTrace();
                                 }
+                            } else if (!args[0].equalsIgnoreCase("currency")) {
+                                int arg3 = Integer.parseInt(args[3]);
+                                int arg4 = Integer.parseInt(args[4]);
+                                try {
+                                    Funcs.removething(player, args[0], args[2], arg3, arg4);
+                                    return true;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             } else {
                                 net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
                                 message.setColor(net.md_5.bungee.api.ChatColor.RED);
@@ -415,14 +439,7 @@ public final class Q extends JavaPlugin implements Listener {
                                 player.spigot().sendMessage(message);
                                 return true;
                             }
-                            int arg3 = Integer.parseInt(args[3]);
-                            int arg4 = Integer.parseInt(args[4]);
-                            try {
-                                Funcs.removething(player, args[0], args[2], arg3, arg4);
-                                return true;
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+
                         }
                         else {
                             net.md_5.bungee.api.chat.TextComponent message = new net.md_5.bungee.api.chat.TextComponent("Having problems using commands? Read the docs(Click me)");
@@ -474,7 +491,7 @@ public final class Q extends JavaPlugin implements Listener {
 
     public void CreateInv() {
         
-        invMain = Bukkit.createInventory(null, 9, ChatColor.AQUA + "The Homiecraft Market");
+        invMain = Bukkit.createInventory(null, 9, ChatColor.GRAY + "The Local Market");
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
 
@@ -551,13 +568,14 @@ public final class Q extends JavaPlugin implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
+
         if (event.getInventory().equals(invMain)) {
             if (event.getCurrentItem() == null) return;
             if (event.getCurrentItem().getItemMeta() == null) return;
             if (event.getCurrentItem().getItemMeta().getDisplayName() == null) return;
             event.setCancelled(true);
 
-            String textComponenatblockszg = ChatColor.AQUA + "The Homiecraft Market";
+            String textComponenatblockszg = ChatColor.GRAY + "The Local Market";
             if (event.getSlot() == 0 && event.getCurrentItem().getType() == Material.STONE && event.getView().getTitle().equals(textComponenatblockszg)) {
                 player.openInventory(invBlocks);
             } else if (event.getSlot() == 1 && event.getCurrentItem().getType() == Material.DIAMOND_SWORD && event.getView().getTitle().equals(textComponenatblockszg)) {
@@ -574,6 +592,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invBlocks)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && Objects.requireNonNull(event.getCurrentItem()).getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -619,6 +639,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invCustoms)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!event.getCurrentItem().getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -675,6 +697,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invRedstone)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -720,6 +744,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invWeapons)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -763,6 +789,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invTools)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -806,6 +834,8 @@ public final class Q extends JavaPlugin implements Listener {
         }
         if (event.getInventory().equals(invCurrency)) {
             event.setCancelled(true);
+            if (event.getCurrentItem() == null) return;
+            if (event.getCurrentItem().getItemMeta() == null) return;
             if (!Objects.requireNonNull(event.getCurrentItem()).getItemMeta().hasLore()) return;
             if (event.getSlot() == 53 && event.getCurrentItem().getType() == Material.RED_STAINED_GLASS)
                 player.openInventory(invMain);
@@ -816,35 +846,36 @@ public final class Q extends JavaPlugin implements Listener {
                 ps2a.setInt(2, event.getCurrentItem().getAmount());
                 ResultSet rsa = ps2a.executeQuery();
                 while (rsa.next()) {
-                    ItemStack re = new ItemStack(Material.matchMaterial(rsa.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Quant"));
-                    ItemMeta anotherthing = re.getItemMeta();
-                    List<String> anotherlore = new ArrayList<String>();
-                    anotherlore.add(ChatColor.AQUA + "Price: " + rsa.getInt("Price") + " " + rsa.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
-                    anotherthing.setLore(anotherlore);
-                    re.setItemMeta(anotherthing);
-                    if (event.getCurrentItem().equals(re)) {
-                        ItemStack price = new ItemStack(Material.matchMaterial(rsa.getString("Material2").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Price"));
-                        player.getInventory().removeItem(price);
-                        if (player.getInventory().firstEmpty() == -1) {
-                            Location loc = player.getLocation();
-                            World world = player.getWorld();
-                            Material mat = Material.matchMaterial(rsa.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                    ItemStack price = new ItemStack(Material.matchMaterial(rsa.getString("Material2").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Price"));
+                    if (player.getInventory().containsAtLeast(price, rsa.getInt("Price"))) {
+                        ItemStack re = new ItemStack(Material.matchMaterial(rsa.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim()), rsa.getInt("Quant"));
+                        ItemMeta anotherthing = re.getItemMeta();
+                        List<String> anotherlore = new ArrayList<String>();
+                        anotherlore.add(ChatColor.AQUA + "Price: " + rsa.getInt("Price") + " " + rsa.getString("Material2").toLowerCase().replace("_", " ") + "(s)");
+                        anotherthing.setLore(anotherlore);
+                        re.setItemMeta(anotherthing);
+                        if (event.getCurrentItem().equals(re)) {
+                            player.getInventory().removeItem(price);
+                            if (player.getInventory().firstEmpty() == -1) {
+                                Location loc = player.getLocation();
+                                World world = player.getWorld();
+                                Material mat = Material.matchMaterial(rsa.getString("Material").replaceAll("\\s+", "_").toUpperCase().trim());
+                                assert mat != null;
+                                ItemStack newitem = new ItemStack(mat, rsa.getInt("Quant"));
+                                world.dropItemNaturally(loc, newitem);
+                                player.sendMessage(ChatColor.GREEN + "Your Item has been dropped under you since you have a full inventory");
+                                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
+                                return;
+                            }
+                            Material mat = Material.matchMaterial(rsa.getString("Material").toUpperCase());
                             assert mat != null;
                             ItemStack newitem = new ItemStack(mat, rsa.getInt("Quant"));
-                            world.dropItemNaturally(loc, newitem);
-                            player.sendMessage(ChatColor.GREEN + "Your Item has been dropped under you since you have a full inventory");
+                            player.getInventory().addItem(newitem);
                             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
-                            return;
+                            player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                         }
-                        Material mat = Material.matchMaterial(rsa.getString("Material").toUpperCase());
-                        assert mat != null;
-                        ItemStack newitem = new ItemStack(mat, rsa.getInt("Quant"));
-                        player.getInventory().addItem(newitem);
-                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
-                        player.sendMessage(ChatColor.GREEN + "You bought " + newitem.getType().toString().toLowerCase().replaceAll("_", " "));
                     }
                 }
-
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -852,24 +883,22 @@ public final class Q extends JavaPlugin implements Listener {
             }
         }
 
-
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
