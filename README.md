@@ -1,5 +1,5 @@
 # shop-plugin
-[https://discord.gg/ndTeUVsdaH](https://discord.com/api/guilds/401566357902327820/embed.png)
+[Support server](https://discord.gg/ndTeUVsdaH)
 
 A minecraft shop plugin for 1.17.1 paper.
 
